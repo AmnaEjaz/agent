@@ -28,6 +28,8 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/optimizely/agent/config"
+	"github.com/optimizely/agent/plugins/middleware"
+	_ "github.com/optimizely/agent/plugins/middleware/all"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -52,6 +54,11 @@ func NewServer(name, port string, handler http.Handler, conf config.ServerConfig
 	}
 
 	handler = healthMW(handler, conf.HealthCheckPath)
+	for _, creator := range middleware.Middlewares {
+		mw := creator()
+		handler = mw(handler)
+	}
+
 	logger := log.With().Str("port", port).Str("name", name).Logger()
 	srv := &http.Server{
 		Addr:         ":" + port,
