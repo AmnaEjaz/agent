@@ -82,6 +82,7 @@ func NewDefaultConfig() *AgentConfig {
 			CertFile:        "",
 			KeyFile:         "",
 			DisabledCiphers: make([]string, 0),
+			Plugins:         make([]string, 0),
 		},
 		Webhook: WebhookConfig{
 			Port: "8085",
@@ -131,6 +132,7 @@ type ServerConfig struct {
 	KeyFile         string        `json:"keyFile"`
 	DisabledCiphers []string      `json:"disabledCiphers"`
 	HealthCheckPath string        `json:"healthCheckPath"`
+	Plugins         []string      `json:"plugins"`
 }
 
 // APIConfig holds the REST API configuration
@@ -141,6 +143,7 @@ type APIConfig struct {
 	Port                string            `json:"port"`
 	EnableNotifications bool              `json:"enableNotifications"`
 	EnableOverrides     bool              `json:"enableOverrides"`
+	Plugins             []string          `json:"plugins"`
 }
 
 // CORSConfig holds the CORS middleware configuration
@@ -155,14 +158,16 @@ type CORSConfig struct {
 
 // AdminConfig holds the configuration for the admin web interface
 type AdminConfig struct {
-	Auth ServiceAuthConfig `json:"-"`
-	Port string            `json:"port"`
+	Auth    ServiceAuthConfig `json:"-"`
+	Port    string            `json:"port"`
+	Plugins []string          `json:"plugins"`
 }
 
 // WebhookConfig holds configuration for Optimizely Webhooks
 type WebhookConfig struct {
 	Port     string                   `json:"port"`
 	Projects map[int64]WebhookProject `json:"projects"`
+	Plugins  []string                 `json:"plugins"`
 }
 
 // WebhookProject holds the configuration for a single Project webhook

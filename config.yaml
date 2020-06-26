@@ -40,6 +40,9 @@ server:
 #    keyFile: <key-file>
     ## the location of the TLS certificate file
 #    certFile: <cert-file>
+    plugins:
+        - httplog
+
 
 ##
 ## api service configuration
@@ -53,6 +56,8 @@ api:
     enableNotifications: false
     ## set to true to be able to override experiment bucketing. (recommended false in production)
     enableOverrides: true
+    plugins:
+        - httplog
     ## for details check this out.
     ## https://github.com/go-chi/cors
     # cors:

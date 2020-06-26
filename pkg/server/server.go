@@ -27,11 +27,12 @@ import (
 	"time"
 
 	"github.com/go-chi/render"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+
 	"github.com/optimizely/agent/config"
 	"github.com/optimizely/agent/plugins/middleware"
 	_ "github.com/optimizely/agent/plugins/middleware/all"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 // Server has generic functionality for service: it starts the service and performs basic checks
@@ -54,12 +55,17 @@ func NewServer(name, port string, handler http.Handler, conf config.ServerConfig
 	}
 
 	handler = healthMW(handler, conf.HealthCheckPath)
-	for _, creator := range middleware.Middlewares {
-		mw := creator()
-		handler = mw(handler)
+	for _, plugin := range conf.Plugins {
+		if creator, ok := middleware.Middlewares[plugin]; ok {
+			log.Info().Str("plugin", plugin).Msg("Adding plugin.")
+			mw := creator()
+			handler = mw(handler)
+		} else {
+			log.Warn().Msgf("Plugin not found: %q", plugin)
+		}
 	}
 
-	logger := log.With().Str("port", port).Str("name", name).Logger()
+	logger := log.With().Str("port", port).Str("server", name).Logger()
 	srv := &http.Server{
 		Addr:         ":" + port,
 		Handler:      handler,
