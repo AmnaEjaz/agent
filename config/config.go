@@ -82,7 +82,7 @@ func NewDefaultConfig() *AgentConfig {
 			CertFile:        "",
 			KeyFile:         "",
 			DisabledCiphers: make([]string, 0),
-			Plugins:         make([]string, 0),
+			Plugins:         make([]map[string]interface{}, 0),
 		},
 		Webhook: WebhookConfig{
 			Port: "8085",
@@ -126,24 +126,24 @@ type LogConfig struct {
 
 // ServerConfig holds the global http server configs
 type ServerConfig struct {
-	ReadTimeout     time.Duration `json:"readTimeout"`
-	WriteTimeout    time.Duration `json:"writeTimeout"`
-	CertFile        string        `json:"certFile"`
-	KeyFile         string        `json:"keyFile"`
-	DisabledCiphers []string      `json:"disabledCiphers"`
-	HealthCheckPath string        `json:"healthCheckPath"`
-	Plugins         []string      `json:"plugins"`
+	ReadTimeout     time.Duration            `json:"readTimeout"`
+	WriteTimeout    time.Duration            `json:"writeTimeout"`
+	CertFile        string                   `json:"certFile"`
+	KeyFile         string                   `json:"keyFile"`
+	DisabledCiphers []string                 `json:"disabledCiphers"`
+	HealthCheckPath string                   `json:"healthCheckPath"`
+	Plugins         []map[string]interface{} `json:"plugins"`
 }
 
 // APIConfig holds the REST API configuration
 type APIConfig struct {
-	Auth                ServiceAuthConfig `json:"-"`
-	CORS                CORSConfig        `json:"cors"`
-	MaxConns            int               `json:"maxConns"`
-	Port                string            `json:"port"`
-	EnableNotifications bool              `json:"enableNotifications"`
-	EnableOverrides     bool              `json:"enableOverrides"`
-	Plugins             []string          `json:"plugins"`
+	Auth                ServiceAuthConfig        `json:"-"`
+	CORS                CORSConfig               `json:"cors"`
+	MaxConns            int                      `json:"maxConns"`
+	Port                string                   `json:"port"`
+	EnableNotifications bool                     `json:"enableNotifications"`
+	EnableOverrides     bool                     `json:"enableOverrides"`
+	Plugins             []map[string]interface{} `json:"plugins"`
 }
 
 // CORSConfig holds the CORS middleware configuration
@@ -158,9 +158,9 @@ type CORSConfig struct {
 
 // AdminConfig holds the configuration for the admin web interface
 type AdminConfig struct {
-	Auth    ServiceAuthConfig `json:"-"`
-	Port    string            `json:"port"`
-	Plugins []string          `json:"plugins"`
+	Auth    ServiceAuthConfig        `json:"-"`
+	Port    string                   `json:"port"`
+	Plugins []map[string]interface{} `json:"plugins"`
 }
 
 // WebhookConfig holds configuration for Optimizely Webhooks

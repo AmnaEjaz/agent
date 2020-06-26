@@ -20,6 +20,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -55,15 +56,7 @@ func NewServer(name, port string, handler http.Handler, conf config.ServerConfig
 	}
 
 	handler = healthMW(handler, conf.HealthCheckPath)
-	for _, plugin := range conf.Plugins {
-		if creator, ok := middleware.Middlewares[plugin]; ok {
-			log.Info().Str("plugin", plugin).Msg("Adding plugin.")
-			mw := creator()
-			handler = mw(handler)
-		} else {
-			log.Warn().Msgf("Plugin not found: %q", plugin)
-		}
-	}
+	handler = wrapHandler(handler, conf.Plugins)
 
 	logger := log.With().Str("port", port).Str("server", name).Logger()
 	srv := &http.Server{
@@ -111,6 +104,33 @@ func (s Server) Shutdown() {
 	if err := s.srv.Shutdown(ctx); err != nil {
 		s.logger.Error().Err(err).Msg("Failed shutdown.")
 	}
+}
+
+func wrapHandler(handler http.Handler, plugins []map[string]interface{}) http.Handler {
+	for _, plugin := range plugins {
+		if pName, ok := plugin["name"]; !ok {
+			log.Warn().Msg("Missing plugin name")
+			continue
+		} else if pNameStr, ok := pName.(string); !ok {
+			log.Warn().Msgf("Plugin name is not a string: %v", pName)
+			continue
+		} else if creator, ok := middleware.Middlewares[pNameStr]; ok {
+			log.Info().Str("plugin", pNameStr).Msg("Adding plugin.")
+			pInstance := creator()
+			if pConfig, err := json.Marshal(plugin); err != nil {
+				log.Warn().Err(err).Msg("Error marshalling plugin config")
+				continue
+			} else if err := json.Unmarshal(pConfig, pInstance); err != nil {
+				log.Warn().Err(err).Msg("Error unmarshalling plugin config")
+				continue
+			}
+			handler = pInstance.Handler()(handler)
+		} else {
+			log.Warn().Msgf("Plugin not found: %q", plugin)
+		}
+	}
+
+	return handler
 }
 
 func makeTLSConfig(conf config.ServerConfig) (*tls.Config, error) {

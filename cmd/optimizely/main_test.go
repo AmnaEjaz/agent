@@ -41,7 +41,7 @@ func assertServer(t *testing.T, actual config.ServerConfig) {
 	assert.Equal(t, "keyfile", actual.KeyFile)
 	assert.Equal(t, "certfile", actual.CertFile)
 	assert.Equal(t, []string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"}, actual.DisabledCiphers)
-	assert.Equal(t, []string{"plugin1", "plugin2"}, actual.Plugins)
+	assert.Equal(t, []map[string]interface{}{0: {"name": "plugin", "val": 123}}, actual.Plugins)
 }
 
 func assertClient(t *testing.T, actual config.ClientConfig) {
