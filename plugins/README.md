@@ -16,31 +16,31 @@ import (
     "context"
     "net/http"
 
-	"github.com/optimizely/agent/plugins/middleware"
+    "github.com/optimizely/agent/plugins/middleware"
 )
 
 type ExampleMiddlewarePlugin struct {
     // set of configuration fields 
-	RequestHeader string
+    RequestHeader string
     ResponseHeader string
     ContextValue string
 }
 
 func (p *ExampleMiddlewarePlugin) Handler() func(next http.Handler) http.Handler {
     return func(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        r.Header.Add("X-Example-Request", p.RequestHeader)
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            r.Header.Add("X-Example-Request", p.RequestHeader)
 
-        // Example adding context to the request path
-        ctx := context.WithValue(r.Context(), "example-context", p.ContextValue)
-        
-        // Continuing with the normal serving
-        next.ServeHTTP(w, r.WithContext(ctx))
-        
-        // Modify the response in some way
-        w.Header().Add("X-Example-Response", p.ResponseHeader)
-    })
-  }
+            // Example adding context to the request path
+            ctx := context.WithValue(r.Context(), "example-context", p.ContextValue)
+
+            // Continuing with the normal serving
+            next.ServeHTTP(w, r.WithContext(ctx))
+
+            // Modify the response in some way
+            w.Header().Add("X-Example-Response", p.ResponseHeader)
+        })
+    }
 }
 
 // Register our middleware
