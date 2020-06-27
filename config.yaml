@@ -41,8 +41,7 @@ server:
     ## the location of the TLS certificate file
 #    certFile: <cert-file>
     plugins:
-        - name: httplog
-
+        httplog: {}
 
 ##
 ## api service configuration

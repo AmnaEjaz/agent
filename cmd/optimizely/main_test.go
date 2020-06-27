@@ -34,14 +34,17 @@ func assertRoot(t *testing.T, actual *config.AgentConfig) {
 	assert.Equal(t, []string{"ddd", "eee", "fff"}, actual.SDKKeys)
 }
 
-func assertServer(t *testing.T, actual config.ServerConfig) {
+func assertServer(t *testing.T, actual config.ServerConfig, assertPlugins bool) {
 	assert.Equal(t, 5*time.Second, actual.ReadTimeout)
 	assert.Equal(t, 10*time.Second, actual.WriteTimeout)
 	assert.Equal(t, "/healthcheck", actual.HealthCheckPath)
 	assert.Equal(t, "keyfile", actual.KeyFile)
 	assert.Equal(t, "certfile", actual.CertFile)
 	assert.Equal(t, []string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"}, actual.DisabledCiphers)
-	assert.Equal(t, []map[string]interface{}{0: {"name": "plugin", "val": 123}}, actual.Plugins)
+
+	if assertPlugins {
+		assert.Equal(t, map[string]interface{}{"plugin": map[string]interface{}{}}, actual.Plugins)
+	}
 }
 
 func assertClient(t *testing.T, actual config.ClientConfig) {
@@ -126,7 +129,7 @@ func TestViperYaml(t *testing.T) {
 	actual := loadConfig(v)
 
 	assertRoot(t, actual)
-	assertServer(t, actual.Server)
+	assertServer(t, actual.Server, true)
 	assertClient(t, actual.Client)
 	assertLog(t, actual.Log)
 	assertAdmin(t, actual.Admin)
@@ -151,7 +154,7 @@ func TestViperProps(t *testing.T) {
 	v.Set("server.certFile", "certfile")
 	v.Set("server.keyFile", "keyfile")
 	v.Set("server.disabledCiphers", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
-	v.Set("server.plugins", "plugin1,plugin2")
+	v.Set("server.plugins", map[string]interface{}{"plugin": map[string]interface{}{}})
 
 	v.Set("client.pollingInterval", 10*time.Second)
 	v.Set("client.batchSize", 1)
@@ -207,7 +210,7 @@ func TestViperProps(t *testing.T) {
 	actual := loadConfig(v)
 
 	assertRoot(t, actual)
-	assertServer(t, actual.Server)
+	assertServer(t, actual.Server, true)
 	assertClient(t, actual.Client)
 	assertLog(t, actual.Log)
 	assertAdmin(t, actual.Admin)
@@ -229,7 +232,6 @@ func TestViperEnv(t *testing.T) {
 	_ = os.Setenv("OPTIMIZELY_SERVER_CERTFILE", "certfile")
 	_ = os.Setenv("OPTIMIZELY_SERVER_KEYFILE", "keyfile")
 	_ = os.Setenv("OPTIMIZELY_SERVER_DISABLEDCIPHERS", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
-	_ = os.Setenv("OPTIMIZELY_SERVER_PLUGINS", "plugin1,plugin2")
 
 	_ = os.Setenv("OPTIMIZELY_CLIENT_POLLINGINTERVAL", "10s")
 	_ = os.Setenv("OPTIMIZELY_CLIENT_BATCHSIZE", "1")
@@ -261,7 +263,7 @@ func TestViperEnv(t *testing.T) {
 	actual := loadConfig(v)
 
 	assertRoot(t, actual)
-	assertServer(t, actual.Server)
+	assertServer(t, actual.Server, false)
 	assertClient(t, actual.Client)
 	assertLog(t, actual.Log)
 	assertAdmin(t, actual.Admin)

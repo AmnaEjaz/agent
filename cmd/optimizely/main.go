@@ -75,6 +75,9 @@ func loadConfig(v *viper.Viper) *config.AgentConfig {
 		log.Info().Err(err).Msg("Unable to marshal configuration.")
 	}
 
+	// https://github.com/spf13/viper/issues/406
+	conf.Server.Plugins = v.Get("server.plugins")
+
 	return conf
 }
 

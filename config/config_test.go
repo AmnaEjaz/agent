@@ -36,7 +36,7 @@ func TestDefaultConfig(t *testing.T) {
 	assert.Equal(t, "", conf.Server.KeyFile)
 	assert.Equal(t, "", conf.Server.CertFile)
 	assert.Equal(t, []string{}, conf.Server.DisabledCiphers)
-	assert.Equal(t, []map[string]interface{}{}, conf.Server.Plugins)
+	assert.Equal(t, map[string]interface{}{}, conf.Server.Plugins)
 
 	assert.False(t, conf.Log.Pretty)
 	assert.Equal(t, "info", conf.Log.Level)

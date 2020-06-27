@@ -48,7 +48,6 @@ type HealthInfo struct {
 }
 
 // NewServer initializes new service.
-// Configuration is pulled from viper configuration.
 func NewServer(name, port string, handler http.Handler, conf config.ServerConfig) (Server, error) {
 
 	if handler == nil {
@@ -56,7 +55,9 @@ func NewServer(name, port string, handler http.Handler, conf config.ServerConfig
 	}
 
 	handler = healthMW(handler, conf.HealthCheckPath)
-	handler = wrapHandler(handler, conf.Plugins)
+	if plugins, ok := conf.Plugins.(map[string]interface{}); ok {
+		handler = wrapHandler(handler, plugins)
+	}
 
 	logger := log.With().Str("port", port).Str("server", name).Logger()
 	srv := &http.Server{
@@ -106,28 +107,24 @@ func (s Server) Shutdown() {
 	}
 }
 
-func wrapHandler(handler http.Handler, plugins []map[string]interface{}) http.Handler {
-	for _, plugin := range plugins {
-		if pName, ok := plugin["name"]; !ok {
-			log.Warn().Msg("Missing plugin name")
+func wrapHandler(handler http.Handler, plugins config.PluginConfigs) http.Handler {
+	for name, conf := range plugins {
+		creator, ok := middleware.Middlewares[name]
+		if !ok {
+			log.Warn().Msgf("Plugin not found: %q", name)
 			continue
-		} else if pNameStr, ok := pName.(string); !ok {
-			log.Warn().Msgf("Plugin name is not a string: %v", pName)
-			continue
-		} else if creator, ok := middleware.Middlewares[pNameStr]; ok {
-			log.Info().Str("plugin", pNameStr).Msg("Adding plugin.")
-			pInstance := creator()
-			if pConfig, err := json.Marshal(plugin); err != nil {
-				log.Warn().Err(err).Msg("Error marshalling plugin config")
-				continue
-			} else if err := json.Unmarshal(pConfig, pInstance); err != nil {
-				log.Warn().Err(err).Msg("Error unmarshalling plugin config")
-				continue
-			}
-			handler = pInstance.Handler()(handler)
-		} else {
-			log.Warn().Msgf("Plugin not found: %q", plugin)
 		}
+
+		log.Info().Str("plugin", name).Msg("Adding plugin.")
+		pInstance := creator()
+		if pConfig, err := json.Marshal(conf); err != nil {
+			log.Warn().Err(err).Msg("Error marshalling plugin config")
+			continue
+		} else if err := json.Unmarshal(pConfig, pInstance); err != nil {
+			log.Warn().Err(err).Msg("Error unmarshalling plugin config")
+			continue
+		}
+		handler = pInstance.Handler()(handler)
 	}
 
 	return handler
