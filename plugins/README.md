@@ -10,7 +10,7 @@ The custom structure can also define a set of fields that can be configured via 
 
 ### Example Middleware definition
 ```go
-package Example
+package example
 
 import (
     "context"
@@ -19,14 +19,14 @@ import (
     "github.com/optimizely/agent/plugins/middleware"
 )
 
-type ExampleMiddlewarePlugin struct {
+type MiddlewarePlugin struct {
     // set of configuration fields 
-    RequestHeader string
+    RequestHeader  string
     ResponseHeader string
-    ContextValue string
+    ContextValue   string
 }
 
-func (p *ExampleMiddlewarePlugin) Handler() func(next http.Handler) http.Handler {
+func (p *MiddlewarePlugin) Handler() func(next http.Handler) http.Handler {
     return func(next http.Handler) http.Handler {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
             r.Header.Add("X-Example-Request", p.RequestHeader)
@@ -43,10 +43,10 @@ func (p *ExampleMiddlewarePlugin) Handler() func(next http.Handler) http.Handler
     }
 }
 
-// Register our middleware
+// Register our middleware as "example".
 func init() {
-    middleware.Add("httplog", func() middleware.Middleware {
-        return &ExampleMiddlewarePlugin{}
+    middleware.Add("example", func() middleware.Middleware {
+        return &MiddlewarePlugin{}
     })
 }
 ```
@@ -58,7 +58,7 @@ package all
 
 // Add imports here to trigger the plugin `init()` function
 import (
-    _ "github.com/optimizely/agent/plugins/middleware/httplog"
+    _ "github.com/optimizely/agent/plugins/middleware/example"
 )
 ```
 
