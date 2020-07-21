@@ -7,6 +7,20 @@ from tests.acceptance.helpers import ENDPOINT_ACTIVATE
 from tests.acceptance.helpers import ENDPOINT_CONFIG
 from tests.acceptance.helpers import sort_response
 
+import yaml
+
+spec_dict = None
+with open('D:\\forked repos\\agent\\api\\openapi-spec\\openapi.yaml', 'r') as stream:
+    try:
+        spec_dict = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(exc)
+
+from openapi_core import create_spec
+from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.testing import MockRequest, MockResponse
+spec = create_spec(spec_dict)
 BASE_URL = os.getenv('host')
 
 expected_activate_ab = """[
@@ -68,9 +82,23 @@ def test_activate__experiment(session_obj, experiment_key, expected_response,
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"experimentKey": experiment_key}
 
+    request = MockRequest(
+        BASE_URL, 'post', ENDPOINT_ACTIVATE,
+        args=params,
+        data=json.loads(payload)
+    )
     resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params,
                             json=json.loads(payload))
+    validator = ResponseValidator(spec)
+    result = validator.validate(request, resp)
 
+    # raise errors if response invalid
+    result.raise_for_errors()
+
+    # get list of errors
+    errors = result.errors
+
+    print(errors)
     assert json.loads(expected_response) == resp.json()
     assert resp.status_code == expected_status_code, resp.text
     resp.raise_for_status()

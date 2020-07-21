@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Optimizely Agent API
-  description: Optimizely Agent is a stand-alone, open-source microservice that provides major benefits over using Optimizely SDKs in certain use cases. Its REST API offers consolidated and simplified endpoints for accessing all the functionality of Optimizely Full Stack SDKs. Use this API the control experiments (such as a feature tests). For more info, see https://docs.developers.optimizely.com/full-stack/docs/optimizely-agent. 
+  description: Optimizely Agent is a stand-alone, open-source microservice that provides major benefits over using Optimizely SDKs in certain use cases. Its REST API offers consolidated and simplified endpoints for accessing all the functionality of Optimizely Full Stack SDKs. Use this API the control experiments (such as a feature tests). For more info, see https://docs.developers.optimizely.com/full-stack/docs/optimizely-agent.
   termsOfService: http://optimizely.com/terms/
   license:
     name: Apache 2.0
@@ -100,7 +100,7 @@ paths:
     post:
       summary: Get JWT token to authenticate all requests.
       operationId: getToken
-      description: Generates valid JWT token for grant_type, client_id, and client_secret, using the values you pass in the request body.  Configure expiration time and SDK keys (to which the token grants access) in Optimizely config. 
+      description: Generates valid JWT token for grant_type, client_id, and client_secret, using the values you pass in the request body.  Configure expiration time and SDK keys (to which the token grants access) in Optimizely config.
       responses:
         '200':
           description: Generates a valid token
@@ -239,8 +239,6 @@ components:
         - key
     Decision:
       properties:
-        #        id:
-        #          type: integer
         featureKey:
           type: string
         experimentKey:
@@ -260,9 +258,6 @@ components:
             type: string
         error:
           type: string
-      required:
-        #        - id
-        - key
     ActivateContext:
       properties:
         userId:
