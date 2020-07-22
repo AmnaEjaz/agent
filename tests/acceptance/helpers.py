@@ -4,6 +4,23 @@ import string
 import time
 from random import randint, choice
 
+import yaml
+from openapi_core import create_spec
+from openapi_core.validation.request.validators import RequestValidator
+from openapi_core.validation.request.datatypes import (OpenAPIRequest, RequestParameters)
+from werkzeug.datastructures import ImmutableMultiDict
+from openapi_core.validation.response.datatypes import OpenAPIResponse
+from openapi_core.validation.response.validators import ResponseValidator
+
+spec_dict = None
+with open('D:\\forked repos\\agent\\api\\openapi-spec\\openapi.yaml', 'r') as stream:
+    try:
+        spec_dict = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(exc)
+
+spec = create_spec(spec_dict)
+
 import requests
 
 ENDPOINT_ACTIVATE = '/v1/activate'
@@ -122,7 +139,7 @@ def sort_response(response_dict, *args):
 # Helper funcitons for overrides
 def activate_experiment(sess):
     """
-    Helper function to activat eexperiment.
+    Helper function to activate experiment.
     :param sess: API request session_object
     :return: response
     """
@@ -145,3 +162,34 @@ def override_variation(sess, override_with):
                "experimentKey": "ab_test1", "variationKey": f"{override_with}"}
     resp = sess.post(BASE_URL + ENDPOINT_OVERRIDE, json=payload)
     return resp
+
+
+def create_and_validate_request(endpoint, method, payload='', params=[]):
+    parameters = RequestParameters(
+        query=ImmutableMultiDict(params),
+        path=endpoint
+    )
+
+    request = OpenAPIRequest(
+        full_url_pattern=endpoint,
+        method=method,
+        parameters=parameters,
+        body=payload or '',
+        mimetype='application/json',
+    )
+
+    validator = RequestValidator(spec)
+    result = validator.validate(request)
+    return request, result
+
+
+def create_and_validate_response(request, response):
+    response = OpenAPIResponse(
+        data=response.content,
+        status_code=response.status_code,
+        mimetype='application/json',
+    )
+
+    validator = ResponseValidator(spec)
+    result = validator.validate(request, response)
+    return result
