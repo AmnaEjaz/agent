@@ -210,7 +210,7 @@ components:
     Experiment:
       properties:
         id:
-          type: integer
+          type: string
         key:
           type: string
         variationsMap:
@@ -223,7 +223,7 @@ components:
     Feature:
       properties:
         id:
-          type: integer
+          type: string
         key:
           type: string
         variablesMap:
@@ -250,12 +250,14 @@ components:
           enum:
             - feature
             - experiment
+            - null
+            - ""
         enabled:
           type: boolean
         variables:
           type: object
-          additionalProperties:
-            type: string
+#          additionalProperties:
+#            type: string
         error:
           type: string
     ActivateContext:
@@ -342,12 +344,12 @@ components:
           type: string
         client_secret:
           type: string
-  securitySchemes:
-    SdkKeyAuth:
-      in: header
-      name: X-Optimizely-SDK-Key
-      type: apiKey
-    TokenAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+#  securitySchemes:
+#    SdkKeyAuth:
+#      in: header
+#      name: X-Optimizely-SDK-Key
+#      type: apiKey
+#    TokenAuth:
+#      type: http
+#      scheme: bearer
+#      bearerFormat: JWT
