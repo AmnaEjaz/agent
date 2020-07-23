@@ -158,7 +158,6 @@ components:
         enum:
           - feature
           - experiment
-          - ''
   requestBodies:
     ActivateContext:
       required: true
