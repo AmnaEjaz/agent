@@ -7,6 +7,8 @@ import requests
 from tests.acceptance.helpers import ENDPOINT_OVERRIDE
 from tests.acceptance.helpers import activate_experiment
 from tests.acceptance.helpers import override_variation
+from tests.acceptance.helpers import create_and_validate_request
+from tests.acceptance.helpers import create_and_validate_response
 
 BASE_URL = os.getenv('host')
 
@@ -112,7 +114,17 @@ def test_overrides__invalid_arguments(session_obj, userId, experimentKey, variat
     payload = f'{{"userId": "{userId}", "userAttributes": {{"attr_1": "hola"}}, ' \
         f'"experimentKey": "{experimentKey}", "variationKey": "{variationKey}"}}'
 
+    request, request_result = create_and_validate_request(ENDPOINT_OVERRIDE, 'post', payload)
+
+    # raise errors if request invalid
+    request_result.raise_for_errors()
+
     resp = session_obj.post(BASE_URL + ENDPOINT_OVERRIDE, json=json.loads(payload))
+
+    response_result = create_and_validate_response(request, resp)
+
+    # raise errors if response invalid
+    response_result.raise_for_errors()
 
     assert resp.status_code == expected_status_code, resp.text
     assert resp.text == expected_response
@@ -126,8 +138,18 @@ def test_overrides_403(session_override_sdk_key):
     payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"},
                "experimentKey": "ab_test1", "variationKey": "my_new_variation"}
 
+    request, request_result = create_and_validate_request(ENDPOINT_OVERRIDE, 'post', payload)
+
+    # raise errors if request invalid
+    request_result.raise_for_errors()
+
     with pytest.raises(requests.exceptions.HTTPError):
         resp = session_override_sdk_key.post(BASE_URL + ENDPOINT_OVERRIDE, json=payload)
+
+        response_result = create_and_validate_response(request, resp)
+
+        # raise errors if response invalid
+        response_result.raise_for_errors()
 
         assert resp.status_code == 403
         assert resp.json()['error'] == 'unable to fetch fresh datafile (consider ' \

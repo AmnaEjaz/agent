@@ -4,6 +4,8 @@ import string
 import time
 from random import randint, choice
 
+import requests
+
 import yaml
 from openapi_core import create_spec
 from openapi_core.validation.request.validators import RequestValidator
@@ -12,17 +14,6 @@ from werkzeug.datastructures import ImmutableMultiDict
 from openapi_core.validation.response.datatypes import OpenAPIResponse
 from openapi_core.validation.response.validators import ResponseValidator
 
-spec_dict = None
-with open('D:\\forked repos\\agent\\api\\openapi-spec\\openapi.yaml', 'r') as stream:
-    try:
-        spec_dict = yaml.safe_load(stream)
-    except yaml.YAMLError as exc:
-        print(exc)
-
-spec = create_spec(spec_dict)
-
-import requests
-
 ENDPOINT_ACTIVATE = '/v1/activate'
 ENDPOINT_CONFIG = '/v1/config'
 ENDPOINT_NOTIFICATIONS = '/v1/notifications/event-stream'
@@ -30,6 +21,17 @@ ENDPOINT_OVERRIDE = '/v1/override'
 ENDPOINT_TRACK = '/v1/track'
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+os.environ['OPENAPI_YAML'] = os.path.abspath('api/openapi-spec/openapi.yaml')
+
+spec_dict = None
+with open(os.environ.get('OPENAPI_YAML'), 'r') as stream:
+    try:
+        spec_dict = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(exc)
+
+spec = create_spec(spec_dict)
 
 
 def test_health():
@@ -146,7 +148,19 @@ def activate_experiment(sess):
     BASE_URL = os.getenv('host')
     payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}
     params = {"experimentKey": 'ab_test1'}
+
+    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload, params)
+
+    # raise errors if request invalid
+    request_result.raise_for_errors()
+
     resp = sess.post(BASE_URL + ENDPOINT_ACTIVATE, params=params, json=payload)
+
+    response_result = create_and_validate_response(request, resp)
+
+    # raise errors if response invalid
+    response_result.raise_for_errors()
+
     return resp
 
 
@@ -160,7 +174,19 @@ def override_variation(sess, override_with):
     BASE_URL = os.getenv('host')
     payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"},
                "experimentKey": "ab_test1", "variationKey": f"{override_with}"}
-    resp = sess.post(BASE_URL + ENDPOINT_OVERRIDE, json=payload)
+
+    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload)
+
+    # raise errors if request invalid
+    request_result.raise_for_errors()
+
+    resp = sess.post(BASE_URL + ENDPOINT_ACTIVATE, json=payload)
+
+    response_result = create_and_validate_response(request, resp)
+
+    # raise errors if response invalid
+    response_result.raise_for_errors()
+
     return resp
 
 
@@ -174,7 +200,7 @@ def create_and_validate_request(endpoint, method, payload='', params=[]):
         full_url_pattern=endpoint,
         method=method,
         parameters=parameters,
-        body=payload or '',
+        body=payload,
         mimetype='application/json',
     )
 

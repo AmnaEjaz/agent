@@ -6,6 +6,8 @@ import pytest
 import requests
 
 from tests.acceptance.helpers import ENDPOINT_TRACK
+from tests.acceptance.helpers import create_and_validate_request
+from tests.acceptance.helpers import create_and_validate_response
 
 BASE_URL = os.getenv('host')
 
@@ -27,8 +29,20 @@ def test_track(session_obj, event_key, status_code):
     # TODO - ADD EVENT TAGS - AND TEST DIFFERENT SCENARIONS WITH EVENT TAGS
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}, "eventTags": {}}'
     params = {"eventKey": event_key}
+
+    request, request_result = create_and_validate_request(ENDPOINT_TRACK, 'post', payload, params)
+
+    # raise errors if request invalid
+    request_result.raise_for_errors()
+
     resp = session_obj.post(BASE_URL + ENDPOINT_TRACK, params=params,
                             json=json.loads(payload))
+
+    response_result = create_and_validate_response(request, resp)
+
+    # raise errors if response invalid
+    response_result.raise_for_errors()
+
     assert resp.status_code == status_code, f'Status code should be {status_code}. {resp.text}'
 
     if event_key == "":
@@ -50,9 +64,19 @@ def test_track_403(session_override_sdk_key):
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"eventKey": "myevent"}
 
+    request, request_result = create_and_validate_request(ENDPOINT_TRACK, 'post', payload, params)
+
+    # raise errors if request invalid
+    request_result.raise_for_errors()
+
     with pytest.raises(requests.exceptions.HTTPError):
         resp = session_override_sdk_key.post(BASE_URL + ENDPOINT_TRACK, params=params,
                                              json=json.loads(payload))
+
+        response_result = create_and_validate_response(request, resp)
+
+        # raise errors if response invalid
+        response_result.raise_for_errors()
 
         assert resp.status_code == 403
         assert resp.json()['error'] == 'unable to fetch fresh datafile (consider ' \
