@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Optimizely Agent API
-  description: Optimizely Agent is a stand-alone, open-source microservice that provides major benefits over using Optimizely SDKs in certain use cases. Its REST API offers consolidated and simplified endpoints for accessing all the functionality of Optimizely Full Stack SDKs. Use this API the control experiments (such as a feature tests). For more info, see https://docs.developers.optimizely.com/full-stack/docs/optimizely-agent.
+  description: Optimizely Agent is a stand-alone, open-source microservice that provides major benefits over using Optimizely SDKs in certain use cases. Its REST API offers consolidated and simplified endpoints for accessing all the functionality of Optimizely Full Stack SDKs. Use this API the control experiments (such as a feature tests). For more info, see https://docs.developers.optimizely.com/full-stack/docs/optimizely-agent. 
   termsOfService: http://optimizely.com/terms/
   license:
     name: Apache 2.0
