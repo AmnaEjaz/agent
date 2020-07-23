@@ -158,6 +158,7 @@ components:
         enum:
           - feature
           - experiment
+          - ''
   requestBodies:
     ActivateContext:
       required: true
@@ -250,13 +251,12 @@ components:
           enum:
             - feature
             - experiment
-            - null
             - ""
         enabled:
           type: boolean
         variables:
           type: object
-#          additionalProperties:
+          additionalProperties: true
 #            type: string
         error:
           type: string

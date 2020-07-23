@@ -9,10 +9,11 @@ import requests
 import yaml
 from openapi_core import create_spec
 from openapi_core.validation.request.validators import RequestValidator
-from openapi_core.validation.request.datatypes import (OpenAPIRequest, RequestParameters)
-from werkzeug.datastructures import ImmutableMultiDict
-from openapi_core.validation.response.datatypes import OpenAPIResponse
 from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core.validation.request.datatypes import (OpenAPIRequest, RequestParameters)
+from openapi_core.validation.response.datatypes import OpenAPIResponse
+from werkzeug.datastructures import ImmutableMultiDict
+
 
 ENDPOINT_ACTIVATE = '/v1/activate'
 ENDPOINT_CONFIG = '/v1/config'
@@ -149,17 +150,7 @@ def activate_experiment(sess):
     payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}
     params = {"experimentKey": 'ab_test1'}
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload, params)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    resp = sess.post(BASE_URL + ENDPOINT_ACTIVATE, params=params, json=payload)
-
-    response_result = create_and_validate_response(request, resp)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
+    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, str(payload), list(params))
 
     return resp
 
@@ -175,22 +166,22 @@ def override_variation(sess, override_with):
     payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"},
                "experimentKey": "ab_test1", "variationKey": f"{override_with}"}
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    resp = sess.post(BASE_URL + ENDPOINT_ACTIVATE, json=payload)
-
-    response_result = create_and_validate_response(request, resp)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
+    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=str(payload))
 
     return resp
 
 
 def create_and_validate_request(endpoint, method, payload='', params=[]):
+    """
+    Helper function to create OpenAPIRequest and validate it
+    :param endpoint: API endpoint
+    :param method: API request method
+    :param payload: API request payload
+    :param params: API request payload
+    :return:
+        - request: OpenAPIRequest
+        - request_result: result of request validation
+    """
     parameters = RequestParameters(
         query=ImmutableMultiDict(params),
         path=endpoint
@@ -205,17 +196,56 @@ def create_and_validate_request(endpoint, method, payload='', params=[]):
     )
 
     validator = RequestValidator(spec)
-    result = validator.validate(request)
-    return request, result
+    request_result = validator.validate(request)
+
+    return request, request_result
 
 
 def create_and_validate_response(request, response):
+    """
+    Helper function to create OpenAPIRequest and validate it
+    :param request: OpenAPIRequest
+    :param response: API response
+    :return:
+        - result: result of response validation
+    """
     response = OpenAPIResponse(
         data=response.content,
         status_code=response.status_code,
-        mimetype='application/json',
+        mimetype='application/json'
     )
 
     validator = ResponseValidator(spec)
     result = validator.validate(request, response)
     return result
+
+
+def create_and_validate_request_and_response(endpoint, method, session, payload='', params=[]):
+    """
+    Helper function to create OpenAPIRequest, OpenAPIResponse and validate both
+    :param endpoint: API endpoint
+    :param session: API valid session object
+    :param method: API request method
+    :param payload: API request payload
+    :param params: API request payload
+    :return:
+        - response: API response object
+    """
+    request, request_result = create_and_validate_request(endpoint, method, payload, params)
+
+    # raise errors if request invalid
+    request_result.raise_for_errors()
+
+    BASE_URL = os.getenv('host')
+
+    if method == 'post':
+        response = session.post(BASE_URL + endpoint, params=params, json=json.loads(payload or 'null'))
+    elif method == 'get':
+        response = session.get(BASE_URL + endpoint, params=params, json=json.loads(payload or 'null'))
+
+    response_result = create_and_validate_response(request, response)
+
+    # raise errors if response invalid
+    response_result.raise_for_errors()
+
+    return response

@@ -6,6 +6,7 @@ import requests
 from tests.acceptance.helpers import ENDPOINT_CONFIG
 from tests.acceptance.helpers import create_and_validate_request
 from tests.acceptance.helpers import create_and_validate_response
+from tests.acceptance.helpers import create_and_validate_request_and_response
 
 BASE_URL = os.getenv('host')
 
@@ -138,17 +139,7 @@ def test_config(session_obj):
     as well.
     :param session_obj: session object
     """
-    request, request_result = create_and_validate_request(ENDPOINT_CONFIG, 'get')
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    resp = session_obj.get(BASE_URL + ENDPOINT_CONFIG)
-
-    response_result = create_and_validate_response(request, resp)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
+    resp = create_and_validate_request_and_response(ENDPOINT_CONFIG, 'get', session_obj)
 
     assert resp.status_code == 200
     resp.raise_for_status()

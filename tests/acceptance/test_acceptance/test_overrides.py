@@ -9,6 +9,8 @@ from tests.acceptance.helpers import activate_experiment
 from tests.acceptance.helpers import override_variation
 from tests.acceptance.helpers import create_and_validate_request
 from tests.acceptance.helpers import create_and_validate_response
+from tests.acceptance.helpers import create_and_validate_request_and_response
+
 
 BASE_URL = os.getenv('host')
 
@@ -38,7 +40,7 @@ def test_overrides(session_obj):
     3. activate experiment and assert forced variation is now in place
     4. Try overriding with the same variation again. Should not be possible.
     """
-    # Confirm deafult variation is "variation_1" (activate)
+    # Confirm default variation is "variation_1" (activate)
     activating = activate_experiment(session_obj)
     default_variation = activating.json()[0]['variationKey']
     assert activating.status_code == 200, activating.text
@@ -114,17 +116,7 @@ def test_overrides__invalid_arguments(session_obj, userId, experimentKey, variat
     payload = f'{{"userId": "{userId}", "userAttributes": {{"attr_1": "hola"}}, ' \
         f'"experimentKey": "{experimentKey}", "variationKey": "{variationKey}"}}'
 
-    request, request_result = create_and_validate_request(ENDPOINT_OVERRIDE, 'post', payload)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    resp = session_obj.post(BASE_URL + ENDPOINT_OVERRIDE, json=json.loads(payload))
-
-    response_result = create_and_validate_response(request, resp)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
+    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', session_obj, payload=payload)
 
     assert resp.status_code == expected_status_code, resp.text
     assert resp.text == expected_response

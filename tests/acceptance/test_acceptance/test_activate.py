@@ -8,6 +8,7 @@ from tests.acceptance.helpers import ENDPOINT_CONFIG
 from tests.acceptance.helpers import sort_response
 from tests.acceptance.helpers import create_and_validate_request
 from tests.acceptance.helpers import create_and_validate_response
+from tests.acceptance.helpers import create_and_validate_request_and_response
 
 BASE_URL = os.getenv('host')
 
@@ -70,18 +71,7 @@ def test_activate__experiment(session_obj, experiment_key, expected_response,
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"experimentKey": experiment_key}
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload, params)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params,
-                            json=json.loads(payload))
-
-    response_result = create_and_validate_response(request, resp)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
 
     assert json.loads(expected_response) == resp.json()
     assert resp.status_code == expected_status_code, resp.text
@@ -151,18 +141,7 @@ def test_activate__feature(session_obj, feature_key, expected_response,
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"featureKey": feature_key}
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload, params)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params,
-                            json=json.loads(payload))
-
-    response_result = create_and_validate_response(request, resp)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
 
     if isinstance(resp.json(), dict) and resp.json()['error']:
         with pytest.raises(requests.exceptions.HTTPError):
@@ -266,19 +245,7 @@ def test_activate__type(session_obj, decision_type, expected_response,
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"type": decision_type}
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload, params)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    # resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params, json=payload)
-    resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params,
-                            json=json.loads(payload))
-
-    response_result = create_and_validate_response(request, resp)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
 
     if decision_type in ['experiment', 'feature']:
         sorted_actual = sort_response(
@@ -351,19 +318,7 @@ def test_activate__disable_tracking(session_obj, experiment, disableTracking,
         "disableTracking": disableTracking
     }
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload, params)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    # resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params, json=payload)
-    resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params,
-                            json=json.loads(payload))
-
-    response_result = create_and_validate_response(request, resp)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
 
     resp.raise_for_status()
     assert resp.status_code == expected_status_code
@@ -499,19 +454,7 @@ def test_activate__enabled(session_obj, enabled, experimentKey, featureKey,
         "enabled": enabled
     }
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload, params)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    # resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params, json=payload)
-    resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params,
-                            json=json.loads(payload))
-
-    response_result = create_and_validate_response(request, resp)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
 
     actual_response = sort_response(resp.json(), 'experimentKey', 'featureKey')
     expected_response = sort_response(json.loads(expected_response), 'experimentKey',
@@ -632,20 +575,7 @@ def test_activate_with_config(session_obj):
         "experimentKey": exp
     }
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload, params)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
-    # resp = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params, json=payload)
-    resp_activate = session_obj.post(BASE_URL + ENDPOINT_ACTIVATE, params=params, json=json.loads(payload))
-
-    response_result = create_and_validate_response(request, resp_activate)
-
-    # raise errors if response invalid
-    response_result.raise_for_errors()
-
-    resp_activate.raise_for_status()
+    resp_activate = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
 
     sorted_actual = sort_response(resp_activate.json(), 'experimentKey', 'featureKey')
     sorted_expected = sort_response(json.loads(expected_activate_with_config),
