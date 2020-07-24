@@ -140,7 +140,7 @@ def test_config(session_obj):
     :param session_obj: session object
     """
     resp = create_and_validate_request_and_response(ENDPOINT_CONFIG, 'get', session_obj)
-
+    # config response validations failed due to invalid schema value
     assert resp.status_code == 200
     resp.raise_for_status()
     assert json.loads(expected_config) == resp.json()

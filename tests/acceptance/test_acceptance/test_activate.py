@@ -71,7 +71,7 @@ def test_activate__experiment(session_obj, experiment_key, expected_response,
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"experimentKey": experiment_key}
 
-    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload=payload, params=params)
 
     assert json.loads(expected_response) == resp.json()
     assert resp.status_code == expected_status_code, resp.text
@@ -141,7 +141,7 @@ def test_activate__feature(session_obj, feature_key, expected_response,
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"featureKey": feature_key}
 
-    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload=payload, params=params)
 
     if isinstance(resp.json(), dict) and resp.json()['error']:
         with pytest.raises(requests.exceptions.HTTPError):
@@ -222,16 +222,16 @@ expected_activate_type_feat = """[
 ]"""
 
 
-@pytest.mark.parametrize("decision_type, expected_response, expected_status_code", [
-    ("experiment", expected_activate_type_exper, 200),
-    ("feature", expected_activate_type_feat, 200),
+@pytest.mark.parametrize("decision_type, expected_response, expected_status_code, bypass_validation", [
+    ("experiment", expected_activate_type_exper, 200, False),
+    ("feature", expected_activate_type_feat, 200, False),
     ("invalid decision type", {'error': 'type "invalid decision type" not supported'},
-     400),
-    ("", {'error': 'type "" not supported'}, 400)
+     400, True),
+    ("", {'error': 'type "" not supported'}, 400, True)
 ], ids=["experiment decision type", "feature decision type", "invalid decision type",
         "empty decision type"])
 def test_activate__type(session_obj, decision_type, expected_response,
-                        expected_status_code):
+                        expected_status_code, bypass_validation):
     """
     Test cases:
     1. Get decisions with "experiment" type
@@ -241,11 +241,10 @@ def test_activate__type(session_obj, decision_type, expected_response,
     :param decision_type: parameterized decision type
     :param expected_response: expected response
     """
-    # payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"type": decision_type}
 
-    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, bypass_validation, payload=payload, params=params)
 
     if decision_type in ['experiment', 'feature']:
         sorted_actual = sort_response(
@@ -267,7 +266,7 @@ def test_activate_403(session_override_sdk_key):
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"type": "experiment"}
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload, params)
+    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload=payload, params=params)
 
     # raise errors if request invalid
     request_result.raise_for_errors()
@@ -288,19 +287,19 @@ def test_activate_403(session_override_sdk_key):
         resp.raise_for_status()
 
 
-@pytest.mark.parametrize("experiment, disableTracking, expected_status_code", [
-    ("ab_test1", "true", 200),
-    ("ab_test1", "false", 200),
-    ("feature_2_test", "true", 200),
-    ("feature_2_test", "false", 200),
-    ("ab_test1", "", 200),
-    ("ab_test1", "invalid_boolean", 200),
+@pytest.mark.parametrize("experiment, disableTracking, expected_status_code, bypass_validation", [
+    ("ab_test1", "true", 200, False),
+    ("ab_test1", "false", 200, False),
+    ("feature_2_test", "true", 200, False),
+    ("feature_2_test", "false", 200, False),
+    ("ab_test1", "", 200, True),
+    ("ab_test1", "invalid_boolean", 200, True),
 ], ids=["ab_experiment and decision_tr true", "ab_experiment and decision_tr false",
         "feature test and decision_tr true",
         "feature test and decision_tr false", "empty disableTracking",
         "invalid disableTracking"])
 def test_activate__disable_tracking(session_obj, experiment, disableTracking,
-                                    expected_status_code):
+                                    expected_status_code, bypass_validation):
     """
     Setting to true will disable impression tracking for ab experiments and feature tests.
     It's equivalent to previous "get_variation".
@@ -318,7 +317,7 @@ def test_activate__disable_tracking(session_obj, experiment, disableTracking,
         "disableTracking": disableTracking
     }
 
-    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, bypass_validation, payload=payload, params=params)
 
     resp.raise_for_status()
     assert resp.status_code == expected_status_code
@@ -425,20 +424,20 @@ expected_enabled_invalid = """[
 
 
 @pytest.mark.parametrize(
-    "enabled, experimentKey, featureKey, expected_response, expected_status_code", [
-        ("true", "ab_test1", "feature_1", expected_enabled_true_all_true, 200),
-        ("true", "ab_test1", "feature_3", expected_enabled_true_feature_off, 200),
-        ("false", "ab_test1", "feature_1", expected_enabled_false_feature_on, 200),
-        ("false", "ab_test1", "feature_3", expected_enabled_false_feature_off, 200),
-        ("", "ab_test1", "feature_1", expected_enabled_empty, 200),
+    "enabled, experimentKey, featureKey, expected_response, expected_status_code, bypass_validation", [
+        ("true", "ab_test1", "feature_1", expected_enabled_true_all_true, 200, False),
+        ("true", "ab_test1", "feature_3", expected_enabled_true_feature_off, 200, False),
+        ("false", "ab_test1", "feature_1", expected_enabled_false_feature_on, 200, False),
+        ("false", "ab_test1", "feature_3", expected_enabled_false_feature_off, 200, False),
+        ("", "ab_test1", "feature_1", expected_enabled_empty, 200, True),
         ("invalid for enabled", "ab_test1",
-         "feature_1", expected_enabled_invalid, 200)
+         "feature_1", expected_enabled_invalid, 200, True)
     ], ids=["enabled true, all true", "enabled true, feature off",
             "enabled false, feature on",
             "enabled false, feature off", "empty value for enabled",
             "invalid value for enabled"])
 def test_activate__enabled(session_obj, enabled, experimentKey, featureKey,
-                           expected_response, expected_status_code):
+                           expected_response, expected_status_code, bypass_validation):
     """
     Filter the activation response to return only enabled decisions.
     Value for enabled key needs to be a string: "true" or "false"
@@ -454,7 +453,7 @@ def test_activate__enabled(session_obj, enabled, experimentKey, featureKey,
         "enabled": enabled
     }
 
-    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, bypass_validation, payload=payload, params=params)
 
     actual_response = sort_response(resp.json(), 'experimentKey', 'featureKey')
     expected_response = sort_response(json.loads(expected_response), 'experimentKey',
@@ -575,7 +574,7 @@ def test_activate_with_config(session_obj):
         "experimentKey": exp
     }
 
-    resp_activate = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload, params)
+    resp_activate = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_obj, payload=payload, params=params)
 
     sorted_actual = sort_response(resp_activate.json(), 'experimentKey', 'featureKey')
     sorted_expected = sort_response(json.loads(expected_activate_with_config),

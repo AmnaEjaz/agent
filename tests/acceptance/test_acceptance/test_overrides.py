@@ -42,6 +42,7 @@ def test_overrides(session_obj):
     """
     # Confirm default variation is "variation_1" (activate)
     activating = activate_experiment(session_obj)
+    # all overrides tests failed due to deserializing or invalidschema issues
     default_variation = activating.json()[0]['variationKey']
     assert activating.status_code == 200, activating.text
     assert default_variation == 'variation_1', activating.text
@@ -101,22 +102,22 @@ expected_invalid_variation_key = '{"userId":"matjaz","experimentKey":"ab_test1",
 
 
 @pytest.mark.parametrize(
-    "userId, experimentKey, variationKey, expected_status_code, expected_response", [
-        ("", "ab_test1", "variation_2", 400, expected_empty_user),
-        ("matjaz", "", "variation_2", 400, expected_empty_experiment_key),
-        ("matjaz", "ab_test1", "", 200, expected_empty_variation_key),
-        ("invalid_user", "ab_test1", "variation_2", 200, expected_invalid_user),
+    "userId, experimentKey, variationKey, expected_status_code, expected_response, bypass_validation", [
+        ("", "ab_test1", "variation_2", 400, expected_empty_user, True),
+        ("matjaz", "", "variation_2", 400, expected_empty_experiment_key, True),
+        ("matjaz", "ab_test1", "", 200, expected_empty_variation_key, False),
+        ("invalid_user", "ab_test1", "variation_2", 200, expected_invalid_user, False),
         ("matjaz", "invalid_experimentKey", "variation_2", 200,
-         expected_invalid_experiment_key),
-        ("matjaz", "ab_test1", "invalid_variation", 200, expected_invalid_variation_key),
+         expected_invalid_experiment_key, False),
+        ("matjaz", "ab_test1", "invalid_variation", 200, expected_invalid_variation_key, False),
     ], ids=["empty_userId", "empty_experiment_key", "empty_variationKey",
             "invalid_userId", "invalid_experimentKey", "invalid_variationKey"])
 def test_overrides__invalid_arguments(session_obj, userId, experimentKey, variationKey,
-                                      expected_status_code, expected_response):
+                                      expected_status_code, expected_response, bypass_validation):
     payload = f'{{"userId": "{userId}", "userAttributes": {{"attr_1": "hola"}}, ' \
         f'"experimentKey": "{experimentKey}", "variationKey": "{variationKey}"}}'
 
-    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', session_obj, payload=payload)
+    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', session_obj, bypass_validation, payload=payload)
 
     assert resp.status_code == expected_status_code, resp.text
     assert resp.text == expected_response
@@ -130,7 +131,7 @@ def test_overrides_403(session_override_sdk_key):
     payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"},
                "experimentKey": "ab_test1", "variationKey": "my_new_variation"}
 
-    request, request_result = create_and_validate_request(ENDPOINT_OVERRIDE, 'post', payload)
+    request, request_result = create_and_validate_request(ENDPOINT_OVERRIDE, 'post', payload=payload)
 
     # raise errors if request invalid
     request_result.raise_for_errors()

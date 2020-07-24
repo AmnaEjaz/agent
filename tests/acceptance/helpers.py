@@ -23,10 +23,8 @@ ENDPOINT_TRACK = '/v1/track'
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-os.environ['OPENAPI_YAML'] = os.path.abspath('api/openapi-spec/openapi.yaml')
-
 spec_dict = None
-with open(os.environ.get('OPENAPI_YAML'), 'r') as stream:
+with open(os.getenv('OPENAPI_YAML_PATH'), 'r') as stream:
     try:
         spec_dict = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
@@ -146,11 +144,10 @@ def activate_experiment(sess):
     :param sess: API request session_object
     :return: response
     """
-    BASE_URL = os.getenv('host')
     payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}
     params = {"experimentKey": 'ab_test1'}
 
-    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, str(payload), list(params))
+    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=str(payload), params=params)
 
     return resp
 
@@ -162,7 +159,6 @@ def override_variation(sess, override_with):
     :param override_with: provide new variation name as string to override with
     :return: response
     """
-    BASE_URL = os.getenv('host')
     payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"},
                "experimentKey": "ab_test1", "variationKey": f"{override_with}"}
 
@@ -220,11 +216,12 @@ def create_and_validate_response(request, response):
     return result
 
 
-def create_and_validate_request_and_response(endpoint, method, session, payload='', params=[]):
+def create_and_validate_request_and_response(endpoint, method, session, bypass_validation=False, payload='', params=[]):
     """
     Helper function to create OpenAPIRequest, OpenAPIResponse and validate both
     :param endpoint: API endpoint
     :param session: API valid session object
+    :param bypass_validation: Flag to bypass request validation of invalid requests
     :param method: API request method
     :param payload: API request payload
     :param params: API request payload
@@ -233,8 +230,9 @@ def create_and_validate_request_and_response(endpoint, method, session, payload=
     """
     request, request_result = create_and_validate_request(endpoint, method, payload, params)
 
-    # raise errors if request invalid
-    request_result.raise_for_errors()
+    if not bypass_validation:
+        # raise errors if request invalid
+        request_result.raise_for_errors()
 
     BASE_URL = os.getenv('host')
 

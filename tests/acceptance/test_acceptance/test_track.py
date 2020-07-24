@@ -13,12 +13,12 @@ from tests.acceptance.helpers import create_and_validate_request_and_response
 BASE_URL = os.getenv('host')
 
 
-@pytest.mark.parametrize("event_key, status_code", [
-    ("myevent", 200),
-    ("", 400),
-    ("invalid_event_key", 200)
+@pytest.mark.parametrize("event_key, status_code, bypass_validation", [
+    ("myevent", 200, False),
+    ("", 400, True),
+    ("invalid_event_key", 200, False)
 ], ids=["Valid event key", "Empty event key", "Invalid event key"])
-def test_track(session_obj, event_key, status_code):
+def test_track(session_obj, event_key, status_code,bypass_validation):
     """
     Track event for the given user.
     Track sends event and user details to Optimizely’s analytics backend
@@ -31,7 +31,7 @@ def test_track(session_obj, event_key, status_code):
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}, "eventTags": {}}'
     params = {"eventKey": event_key}
 
-    resp = create_and_validate_request_and_response(ENDPOINT_TRACK, 'post', session_obj, payload, params)
+    resp = create_and_validate_request_and_response(ENDPOINT_TRACK, 'post', session_obj, bypass_validation, payload=payload, params=params)
 
     assert resp.status_code == status_code, f'Status code should be {status_code}. {resp.text}'
 
@@ -54,7 +54,7 @@ def test_track_403(session_override_sdk_key):
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"eventKey": "myevent"}
 
-    request, request_result = create_and_validate_request(ENDPOINT_TRACK, 'post', payload, params)
+    request, request_result = create_and_validate_request(ENDPOINT_TRACK, 'post', payload=payload, params=params)
 
     # raise errors if request invalid
     request_result.raise_for_errors()
