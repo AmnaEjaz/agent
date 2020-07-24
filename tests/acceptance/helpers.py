@@ -144,10 +144,10 @@ def activate_experiment(sess):
     :param sess: API request session_object
     :return: response
     """
-    payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}
+    payload = [{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}]
     params = {"experimentKey": 'ab_test1'}
 
-    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=str(payload), params=params)
+    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=json.dumps(payload), params=params)
 
     return resp
 
@@ -159,10 +159,10 @@ def override_variation(sess, override_with):
     :param override_with: provide new variation name as string to override with
     :return: response
     """
-    payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"},
-               "experimentKey": "ab_test1", "variationKey": f"{override_with}"}
+    payload = [{"userId": "matjaz", "userAttributes": {"attr_1": "hola"},
+               "experimentKey": "ab_test1", "variationKey": f"{override_with}"}]
 
-    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=str(payload))
+    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=json.dumps(payload))
 
     return resp
 
@@ -190,7 +190,7 @@ def create_and_validate_request(endpoint, method, payload='', params=[]):
         body=payload,
         mimetype='application/json',
     )
-
+    print(request)
     validator = RequestValidator(spec)
     request_result = validator.validate(request)
 
@@ -229,8 +229,9 @@ def create_and_validate_request_and_response(endpoint, method, session, bypass_v
         - response: API response object
     """
     request, request_result = create_and_validate_request(endpoint, method, payload, params)
-
+    print(request_result)
     if not bypass_validation:
+        pass
         # raise errors if request invalid
         request_result.raise_for_errors()
 
@@ -242,7 +243,7 @@ def create_and_validate_request_and_response(endpoint, method, session, bypass_v
         response = session.get(BASE_URL + endpoint, params=params, json=json.loads(payload or 'null'))
 
     response_result = create_and_validate_response(request, response)
-
+    print(response_result)
     # raise errors if response invalid
     response_result.raise_for_errors()
 

@@ -230,7 +230,7 @@ components:
         variablesMap:
           type: object
           additionalProperties:
-            type: string
+            type: object
         experimentsMap:
           type: object
           additionalProperties:
@@ -332,7 +332,7 @@ components:
         type:
           type: string
         value:
-          type: string
+          type: object
       required:
         - id
         - key
