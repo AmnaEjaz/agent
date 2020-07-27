@@ -42,11 +42,10 @@ def test_overrides(session_obj):
     """
     # Confirm default variation is "variation_1" (activate)
     activating = activate_experiment(session_obj)
-    # all overrides tests failed due to deserializing or invalidschema issues
+
     default_variation = activating.json()[0]['variationKey']
     assert activating.status_code == 200, activating.text
     assert default_variation == 'variation_1', activating.text
-#     assert activating.json()[0]['error'] == ''
 
     # Override with "variation_2"
     resp_over = override_variation(session_obj, override_with='variation_2')

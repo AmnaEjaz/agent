@@ -282,8 +282,6 @@ components:
           items:
             type: string
     OverrideContext:
-      type: array
-      items:
         type: object
         properties:
           userId:

@@ -145,10 +145,11 @@ def activate_experiment(sess):
     :return: response
     """
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
-    params = {"experimentKey": 'ab_test1'}
+    params = {"experimentKey": "ab_test1"}
 
-    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=payload, params=params)
+    resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', sess, payload=payload, params=params)
 
+    print(resp)
     return resp
 
 
@@ -164,7 +165,7 @@ def override_variation(sess, override_with):
 
     print(payload)
 
-    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=json.loads(payload))
+    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=json.dumps(payload))
 
     return resp
 
