@@ -42,7 +42,6 @@ def test_overrides(session_obj):
     """
     # Confirm default variation is "variation_1" (activate)
     activating = activate_experiment(session_obj)
-
     default_variation = activating.json()[0]['variationKey']
     assert activating.status_code == 200, activating.text
     assert default_variation == 'variation_1', activating.text
@@ -115,8 +114,6 @@ def test_overrides__invalid_arguments(session_obj, userId, experimentKey, variat
                                       expected_status_code, expected_response, bypass_validation):
     payload = f'{{"userId": "{userId}", ' \
         f'"experimentKey": "{experimentKey}", "variationKey": "{variationKey}"}}'
-
-    print(payload)
 
     resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', session_obj, bypass_validation, payload=payload)
 

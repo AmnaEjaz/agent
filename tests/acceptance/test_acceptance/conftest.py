@@ -64,10 +64,10 @@ def agent_server():
         # ('optimizely ' are processes associated with Agent server and set in ENV var?
         # here: https://github.com/optimizely/agent/blob/master/cmd/main.go#L62)
         # does not remove zombie processes though
-        # pid_integers = get_process_id_list('optimizely')
-        # for proc in pid_integers:
-        #     os.kill(proc, signal.SIGKILL)
-        #     print('\n========  Killing process pid', proc, end='')
+        pid_integers = get_process_id_list('optimizely')
+        for proc in pid_integers:
+            os.kill(proc, signal.SIGKILL)
+            print('\n========  Killing process pid', proc, end='')
     else:
         yield 
 
@@ -77,7 +77,7 @@ def pytest_addoption(parser):
     Adding CLI option to specify host URL to run tests on.
     :param parser: parser
     """
-    parser.addoption("--host", action="store", default="http//localhost:8080",
+    parser.addoption("--host", action="store", default="http://localhost:8080",
                      help="Specify host URL to run tests on.")
 
 

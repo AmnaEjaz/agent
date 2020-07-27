@@ -140,13 +140,12 @@ def test_config(session_obj):
     :param session_obj: session object
     """
     resp = create_and_validate_request_and_response(ENDPOINT_CONFIG, 'get', session_obj)
-    # config response validations failed due to invalid schema value
     assert resp.status_code == 200
     resp.raise_for_status()
     assert json.loads(expected_config) == resp.json()
 
 
-def test_activate_403(session_override_sdk_key):
+def test_config_403(session_override_sdk_key):
     """
     Test that 403 Forbidden is returned. We use invalid SDK key to trigger 403.
     :param : session_obj

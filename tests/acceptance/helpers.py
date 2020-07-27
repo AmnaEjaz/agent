@@ -3,10 +3,9 @@ import os
 import string
 import time
 from random import randint, choice
-
 import requests
-
 import yaml
+
 from openapi_core import create_spec
 from openapi_core.validation.request.validators import RequestValidator
 from openapi_core.validation.response.validators import ResponseValidator
@@ -21,10 +20,10 @@ ENDPOINT_NOTIFICATIONS = '/v1/notifications/event-stream'
 ENDPOINT_OVERRIDE = '/v1/override'
 ENDPOINT_TRACK = '/v1/track'
 
-yaml_file_path = os.getenv('OPENAPI_YAML_PATH', 'api/openapi-spec/openapi.yaml')
+YAML_FILE_PATH = os.getenv('OPENAPI_YAML_PATH', 'api/openapi-spec/openapi.yaml')
 
 spec_dict = None
-with open(yaml_file_path, 'r') as stream:
+with open(YAML_FILE_PATH, 'r') as stream:
     try:
         spec_dict = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
@@ -149,7 +148,6 @@ def activate_experiment(sess):
 
     resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', sess, payload=payload, params=params)
 
-    print(resp)
     return resp
 
 
@@ -163,9 +161,9 @@ def override_variation(sess, override_with):
     payload = {"userId": "matjaz", "userAttributes": {"attr_1": "hola"},
                "experimentKey": "ab_test1", "variationKey": f"{override_with}"}
 
-    print(payload)
-
-    resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', sess, payload=json.dumps(payload))
+    resp = create_and_validate_request_and_response(
+        ENDPOINT_OVERRIDE, 'post', sess, payload=json.dumps(payload)
+    )
 
     return resp
 
@@ -202,7 +200,7 @@ def create_and_validate_request(endpoint, method, payload='', params=[]):
 
 def create_and_validate_response(request, response):
     """
-    Helper function to create OpenAPIRequest and validate it
+    Helper function to create OpenAPIResponse and validate it
     :param request: OpenAPIRequest
     :param response: API response
     :return:
@@ -240,9 +238,9 @@ def create_and_validate_request_and_response(endpoint, method, session, bypass_v
     BASE_URL = os.getenv('host')
 
     if method == 'post':
-        response = session.post(BASE_URL + endpoint, params=params, json=json.loads(payload or 'null'))
+        response = session.post(BASE_URL + endpoint, params=params, data=payload)
     elif method == 'get':
-        response = session.get(BASE_URL + endpoint, params=params, json=json.loads(payload or 'null'))
+        response = session.get(BASE_URL + endpoint, params=params, data=payload)
 
     response_result = create_and_validate_response(request, response)
     # raise errors if response invalid

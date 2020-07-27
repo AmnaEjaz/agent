@@ -6,8 +6,6 @@ import requests
 from tests.acceptance.helpers import ENDPOINT_ACTIVATE
 from tests.acceptance.helpers import ENDPOINT_CONFIG
 from tests.acceptance.helpers import sort_response
-from tests.acceptance.helpers import create_and_validate_request
-from tests.acceptance.helpers import create_and_validate_response
 from tests.acceptance.helpers import create_and_validate_request_and_response
 
 BASE_URL = os.getenv('host')
@@ -266,19 +264,8 @@ def test_activate_403(session_override_sdk_key):
     payload = '{"userId": "matjaz", "userAttributes": {"attr_1": "hola"}}'
     params = {"type": "experiment"}
 
-    request, request_result = create_and_validate_request(ENDPOINT_ACTIVATE, 'post', payload=payload, params=params)
-
-    # raise errors if request invalid
-    request_result.raise_for_errors()
-
     with pytest.raises(requests.exceptions.HTTPError):
-        resp = session_override_sdk_key.post(BASE_URL + ENDPOINT_ACTIVATE, params=params,
-                                             json=json.loads(payload))
-
-        response_result = create_and_validate_response(request, resp)
-
-        # raise errors if response invalid
-        response_result.raise_for_errors()
+        resp = create_and_validate_request_and_response(ENDPOINT_ACTIVATE, 'post', session_override_sdk_key,payload=payload, params=params)
 
         assert resp.status_code == 403
         assert resp.json()['error'] == 'unable to fetch fresh datafile (consider ' \
