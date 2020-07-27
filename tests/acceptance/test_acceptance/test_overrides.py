@@ -114,8 +114,10 @@ expected_invalid_variation_key = '{"userId":"matjaz","experimentKey":"ab_test1",
             "invalid_userId", "invalid_experimentKey", "invalid_variationKey"])
 def test_overrides__invalid_arguments(session_obj, userId, experimentKey, variationKey,
                                       expected_status_code, expected_response, bypass_validation):
-    payload = f'[{{"userId": "{userId}", "userAttributes": {{"attr_1": "hola"}}, ' \
-        f'"experimentKey": "{experimentKey}", "variationKey": "{variationKey}"}}]'
+    payload = f'{{"userId": "{userId}", ' \
+        f'"experimentKey": "{experimentKey}", "variationKey": "{variationKey}"}}'
+
+    print(payload)
 
     resp = create_and_validate_request_and_response(ENDPOINT_OVERRIDE, 'post', session_obj, bypass_validation, payload=payload)
 
@@ -128,11 +130,11 @@ def test_overrides_403(session_override_sdk_key):
     Test that 403 Forbidden is returned. We use invalid SDK key to trigger 403.
     :param : session_override_sdk_key
     """
-    payload = [{"userId": "matjaz", "userAttributes": {"attr_1": "hola"},
-               "experimentKey": "ab_test1", "variationKey": "my_new_variation"}]
+    payload = '{"userId": "matjaz",'\
+               '"experimentKey": "ab_test1", "variationKey": "my_new_variation"}'
 
-    request, request_result = create_and_validate_request(ENDPOINT_OVERRIDE, 'post', payload= json.dumps(payload))
-    print(request_result)
+    request, request_result = create_and_validate_request(ENDPOINT_OVERRIDE, 'post', payload= payload)
+
     # raise errors if request invalid
     request_result.raise_for_errors()
 
@@ -140,7 +142,7 @@ def test_overrides_403(session_override_sdk_key):
         resp = session_override_sdk_key.post(BASE_URL + ENDPOINT_OVERRIDE, json=payload)
 
         response_result = create_and_validate_response(request, resp)
-        print(response_result)
+
         # raise errors if response invalid
         response_result.raise_for_errors()
 

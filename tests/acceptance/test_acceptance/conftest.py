@@ -64,10 +64,10 @@ def agent_server():
         # ('optimizely ' are processes associated with Agent server and set in ENV var?
         # here: https://github.com/optimizely/agent/blob/master/cmd/main.go#L62)
         # does not remove zombie processes though
-        pid_integers = get_process_id_list('optimizely')
-        for proc in pid_integers:
-            os.kill(proc, signal.SIGKILL)
-            print('\n========  Killing process pid', proc, end='')
+        # pid_integers = get_process_id_list('optimizely')
+        # for proc in pid_integers:
+        #     os.kill(proc, signal.SIGKILL)
+        #     print('\n========  Killing process pid', proc, end='')
     else:
         yield 
 
