@@ -95,7 +95,7 @@ Below is a comprehensive list of available configuration properties.
 |client.queueSize|OPTIMIZELY_CLIENT_QUEUESIZE|The max number of events pending dispatch. Default: 1000|
 |client.datafileURLTemplate|OPTIMIZELY_CLIENT_DATAFILEURLTEMPLATE|Template URL for SDK datafile location. Default: https://cdn.optimizely.com/datafiles/%s.json|
 |client.eventURL|OPTIMIZELY_CLIENT_EVENTURL|URL for dispatching events. Default: https://logx.optimizely.com/v1/events|
-|client.sdkKeyRegex|OPTIMIZELY_CLIENT_SDKKEYREGEX|Regex to validate SDK keys provided in request header. Default: ^\\w+$|
+|client.sdkKeyRegex|OPTIMIZELY_CLIENT_SDKKEYREGEX|Regex to validate SDK keys provided in request header. Default: ^\\w+(:\\w+)?$|
 |config.filename|OPTIMIZELY_CONFIG_FILENAME|Location of the configuration YAML file. Default: ./config.yaml|
 |keyfile|OPTIMIZELY_KEYFILE|Path to a key file, used to run Agent with HTTPS|
 |log.level|OPTIMIZELY_LOG_LEVEL|The log [level](https://github.com/rs/zerolog#leveled-logging) for the agent. Default: info|
@@ -103,7 +103,9 @@ Below is a comprehensive list of available configuration properties.
 |name|OPTIMIZELY_NAME|Agent name. Default: optimizely|
 |version|OPTIMIZELY_VERSION|Agent version. Default: `git describe --tags`|
 |sdkKeys|OPTIMIZELY_SDKKEYS|List of SDK keys used to initialize on startup|
+|server.allowedHosts|OPTIMIZELY_SERVER_ALLOWEDHOSTS|List of allowed request host values. Requests whose host value does not match either the configured server.host, or one of these, will be rejected with a 404 response. Request host is determined in the following priority order: 1. X-Forwarded-Host header value, 2. Forwarded header host= directive value, 3. Host property of request (see Host under https://golang.org/pkg/net/http/#Request)|
 |server.disabledCiphers|OPTIMIZELY_SERVER_DISABLEDCIPHERS|List of TLS ciphers to disable when accepting HTTPS connections|
+|server.host|OPTIMIZELY_SERVER_HOST|Host of server. Default: 127.0.0.1|
 |server.readTimeout|OPTIMIZELY_SERVER_READTIMEOUT|The maximum duration for reading the entire body. Default: “5s”|
 |server.writeTimeout|OPTIMIZELY_SERVER_WRITETIMEOUT|The maximum duration before timing out writes of the response. Default: “10s”|
 |server.healthCheckPath|OPTIMIZELY_SERVER_HEALTHCHECKPATH|Path for the health status api. Default: /health|
@@ -122,7 +124,10 @@ The full API specification is defined in an OpenAPI 3.0 (aka Swagger) [spec](./a
 Each request made into the API must include a `X-Optimizely-SDK-Key` in the request header to
 identify the context the request should be evaluated. The SDK key maps to a unique Optimizely Project and
 [Environment](https://docs.developers.optimizely.com/rollouts/docs/manage-environments) allowing multiple
-Environments to be serviced by a single Agent.
+Environments to be serviced by a single Agent. 
+For a secure environment, this header should include both the SDK key and the datafile access token 
+separated by a colon. For example, if SDK key is `my_key` and datafile access token is `my_token` 
+then set header's value to `my_key:my_token`.  
 
 ### Enabling CORS
 
@@ -314,6 +319,10 @@ License (MIT): github.com/go-chi/chi
 chi-render 
 (c) 2016-Present https://github.com/go-chi ‑ authors
 License (MIT): github.com/go-chi/render
+
+hostrouter
+(c) 2016-Present https://github.com/go-chi - authors
+License (MIT): https://github.com/go-chi/hostrouter
 
 go-chi/cors
 (c) 2014 Olivier Poitrey
