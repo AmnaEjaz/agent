@@ -41,6 +41,7 @@ func TestDefaultConfig(t *testing.T) {
 	assert.Equal(t, "", conf.Server.CertFile)
 	assert.Equal(t, []string{}, conf.Server.DisabledCiphers)
 	assert.Equal(t, "127.0.0.1", conf.Server.Host)
+	assert.Equal(t, []string{"localhost"}, conf.Server.AllowedHosts)
 
 	assert.False(t, conf.Log.Pretty)
 	assert.Equal(t, "info", conf.Log.Level)
@@ -77,7 +78,7 @@ func TestDefaultConfig(t *testing.T) {
 	assert.Equal(t, 30*time.Second, conf.Client.FlushInterval)
 	assert.Equal(t, "https://cdn.optimizely.com/datafiles/%s.json", conf.Client.DatafileURLTemplate)
 	assert.Equal(t, "https://logx.optimizely.com/v1/events", conf.Client.EventURL)
-	assert.Equal(t, "^\\w+$", conf.Client.SdkKeyRegex)
+	assert.Equal(t, "^\\w+(:\\w+)?$", conf.Client.SdkKeyRegex)
 
 	assert.Equal(t, 0, conf.Runtime.BlockProfileRate)
 	assert.Equal(t, 0, conf.Runtime.MutexProfileFraction)
@@ -202,4 +203,16 @@ func (s *LogConfigWarningsTestSuite) TestLogConfigWarningsAuthSetForBoth() {
 
 func TestLogConfigWarnings(t *testing.T) {
 	suite.Run(t, new(LogConfigWarningsTestSuite))
+}
+
+func TestServerConfig_GetAllowedHosts(t *testing.T) {
+	conf := &ServerConfig{
+		AllowedHosts: []string{"localhost", "special.test.host"},
+		Host:         "127.0.0.1",
+	}
+	allowedHosts := conf.GetAllowedHosts()
+	assert.Equal(t, 3, len(allowedHosts))
+	assert.Contains(t, allowedHosts, "127.0.0.1")
+	assert.Contains(t, allowedHosts, "localhost")
+	assert.Contains(t, allowedHosts, "special.test.host")
 }
